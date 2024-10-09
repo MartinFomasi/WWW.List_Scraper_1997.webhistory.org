@@ -1,0 +1,911 @@
+---
+title: "WWWVRML_SCRAPER_Webhistory.org"
+author: "Martin Fomasi"
+date: "2024-09-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Install packages and open libraries}
+if (!require("rvest")) install.packages("rvest")
+library(rvest)
+
+if (!require("httr2")) install.packages("httr2")
+library(httr2)
+
+if (!require("dplyr")) install.packages("dplyr")
+library(dplyr)
+
+if (!require("stringr")) install.packages("stringr")
+library(stringr)
+
+if (!require("tidyr")) install.packages("tidyr")
+library(tidyr)
+
+if (!require("fs")) install.packages("fs")
+library(fs)
+
+if (!require("openxlsx")) install.packages("openxlsx")
+library(openxlsx)
+
+if (!require("lubridate")) install.packages("lubridate")
+library("lubridate")
+
+if (!require("ggplot2")) install.packages("ggplot2")
+library("ggplot2")
+
+```
+
+```{r Scraping Directories (METADATA)}
+                                                    
+URL<- c("http://1997.webhistory.org/www.lists/www-vrml.1994/subject.html#" ,
+        "http://1997.webhistory.org/www.lists/www-vrml.1995q1/subject.html#start")
+
+```
+
+
+```{r Loop to read the HTML and convert in character} 
+
+list_html<-list() #Create an empty list
+
+for (i in 1:2) { #Start the loop
+  
+  HTML <- read_html(URL[i]) #Read html
+  STRING <- as.character(HTML) #Convert in character
+  
+  list_html[i]<-STRING #Save in the list
+  
+} #End of the loop
+
+Copy<-list_html #Copy of the list
+
+HTML_df<-do.call(rbind, Copy) #Convert the copy in a dataframe
+```
+
+```{r Create list of Titles}
+
+list_Raw<-list() #Create an empty list to store raw TITLES
+
+for(i in 1:2){ #Start the loop
+  
+  testo_b <- data.frame(regmatches(HTML_df[i], gregexpr("<b>(.*?)</b>", HTML_df[i])))
+  
+  testo_b<-testo_b[-(1:5),] #Remove Headers
+  
+  testo_b <- head(testo_b, -4) # Remove Footers
+  
+  list_Raw[[i]]<-testo_b #Save the results
+  
+}
+
+Titles_1<-list_Raw #Save Titles results
+```
+
+```{r Create a list of RAW titles, authors, dates}
+
+list_Author<-list() #Create an empty list to store raw TITLES and AUTHORS
+
+for(i in 1:2){ #Start the loop
+  
+  testo_b <- data.frame(regmatches(HTML_df[i], gregexpr("<a href(.*?)<b>", HTML_df[i]))) #Select the content between each title
+  
+  testo_b<-testo_b[-(1:2),] #Remove the headers
+  
+  testo_b <- head(testo_b, -1) # Remove the footers
+  
+  list_Author[[i]]<-testo_b #Save the results
+  
+}
+
+Raw_Authors_1<-list_Author #Copy the list
+```
+
+```{r Extract AUTHORS of each thread (title of the message)}
+
+list_Authors_clean<-list()#new empty list
+
+for (i in 1:2) {
+  
+  temporary<-str_extract_all(Raw_Authors_1[[i]], 'html\">(.*?)</a>') #extract authors
+  
+  list_Authors_clean[[i]]<-temporary #Save the results
+  
+}
+
+Authors_1<-list_Authors_clean #Copy the list
+```
+
+```{r Extract DATES of the messages}
+
+Date_list<-list()
+
+for (i in 1:2) {
+  
+  temporary<-str_extract_all(Raw_Authors_1[[i]], '<i>(.*?)</i>') #extract authors
+  
+  Date_list[[i]]<-temporary #Save the result
+  
+  Date_1<-Date_list #Copy the list
+}
+```
+
+```{r Create Directories Dataframe and List}
+
+Storing_list<-list()
+
+for (i in 1:2) {   #Start main loop
+  
+  Merging_list<-list() #Create an empty list to store the results of the the sub loop
+  
+  for ( x in 1:length(Authors_1[[i]])) { #Start sub loop
+    
+    Test<- data.frame(Authors_1[[i]][[x]]) #Import authors
+    
+    colnames(Test)[1] <- "Authors" #Rename first column in Authors
+    
+    current<-Titles_1[[i]] #Select current Titles
+    
+    Test[2]<- current[x] #Import Titles
+    
+    colnames(Test)[2]<- "Title"#Rename second column in Title 
+    
+    Merging_list[[x]]<-Test #Save iteration 
+    
+    current<-Date_1[[i]] #Select date
+    
+    Test[3]<-current[x] #Import date
+    
+    colnames(Test)[3]<-"Date" #Rename column
+    
+    Merging_list[[x]]<-Test #Save the result of the sub loop
+  }
+  
+  Storing_list[[i]]<-Merging_list #Save sub loop into the main list and ressta
+  
+}
+
+Df<-bind_rows(Storing_list)
+
+```
+
+```{r Clean the dataframe. ATTENTION !!! The cleaning produce a WARNING MESSAGES. It could be ignored.}
+
+Df_cleaning<-Df%>%
+  mutate(Authors=gsub('html">', "", Authors))%>%  #Remove html"> from Authors
+  mutate(Authors=gsub("</a>", "", Authors))%>%    #Remove <a/> from Authors
+  mutate(Title=gsub("<b>","",Title))%>%           #Remove <b> from Title
+  mutate(Title=gsub("</b>","",Title))%>%          #Remove </b> from Title
+  mutate(Date=gsub("<i>","",Date))%>%             #Remove <i> from Date
+  mutate(Date=gsub("</i>","",Date))%>%            #Remove <i/> from Date
+  mutate(Date=gsub("  "," ", Date))%>%            #Replace a double space with a single space
+  mutate(Complex=Date)%>%                         #Copy Date column
+  separate(Complex, into = c("Complex", "Var1", "Var2", "Var3"), sep = " ", fill = "right")%>% #Separate Complex dates in columns on the right
+  select(-"Complex")%>%                           #Remove Complex 
+  unite("Combined", Var1, Var2, Var3, sep="-")%>% #Merge columns with date elements
+  mutate(Combined=gsub("-19","-", Combined))%>%   #Remove 19 before the year
+  mutate(Combined = ifelse(grepl("^[1-9]-", Combined), paste0("0", Combined), Combined)) #Add a 0 if the day is < 10. 
+
+Problematic_date<-Df_cleaning[nchar(Df_cleaning$Combined) != 9, ]%>% #Select date that doesn't have 9 characters. 
+  separate(Date, into = c("Combined", "Var1", "Var2", "Var3"), sep = " ", fill = "right")%>% #Separate Combined dates in colums on the right
+  unite("Combined", Combined, Var1, Var2, sep="-")%>% #Merge columns with date elements
+  mutate(Combined=gsub("-19","-", Combined))%>% #Remove 19 from years
+  select(-"Var3")%>%   #Remove column 
+  mutate(Combined = ifelse(grepl("^[1-9]-", Combined), paste0("0", Combined), Combined)) #Add a 0 if the day is < 10. 
+
+index_problematic <- which(nchar(Df_cleaning$Combined) != 9) #Create the index of problematic dates
+
+Df_cleaning$Combined[index_problematic]<-Problematic_date$Combine #Import corrected problematic dates
+
+Df_cleaning<-Df_cleaning%>%
+  mutate(Combined=gsub("-NA-NA","",Combined))
+
+Directories<-Df_cleaning #Copy the Dataframe 9982
+
+```
+```{r Loop to read the HTML and convert in character}
+
+URL_2<- c("http://1997.webhistory.org/www.lists/www-vrml.1995q2/author.html#start")
+
+```
+
+
+```{r Loop to read the HTML and convert in character} 
+
+list_html_2<-list() #Create an empty list
+
+for (i in 1:1) { #Start the loop
+  
+  HTML <- read_html(URL_2[i]) #Read html
+  STRING <- as.character(HTML) #Convert in character
+  
+  list_html_2[i]<-STRING #Save in the list
+  
+} #End of the loop
+
+Copy_2<-list_html_2 #Copy of the list
+
+HTML_df_2<-do.call(rbind, Copy_2) 
+```
+
+```{r Create list of Titles}
+
+list_Raw_2<-list() #Create an empty list to store raw TITLES
+
+for(i in 1:1){ #Start the loop
+  
+  testo_b <- data.frame(regmatches(HTML_df_2[i], gregexpr("<b>(.*?)</b>", HTML_df_2[i])))
+  
+  testo_b<-testo_b[-(1:5),] #Remove Headers
+  
+  testo_b <- head(testo_b, -4) # Remove Footers
+  
+  list_Raw_2[[i]]<-testo_b #Save the results
+  
+}
+
+Authors_2<-list_Raw_2 #Save Titles results
+```
+
+```{r Create a list of RAW titles, authors, dates}
+
+list_Title_2<-list() #Create an empty list to store raw TITLES and AUTHORS
+
+for(i in 1:1){ #Start the loop
+  
+  testo_b <- data.frame(regmatches(HTML_df_2[i], gregexpr("<a href(.*?)<b>", HTML_df_2[i]))) #Select the content between each title
+  
+  testo_b<-testo_b[-(1:2),] #Remove the headers
+  
+  testo_b <- head(testo_b, -1) # Remove the footers
+  
+  list_Title_2[[i]]<-testo_b #Save the results
+  
+}
+
+Raw_Title_2<-list_Title_2 #Copy the list
+
+```
+
+```{r Extract AUTHORS of each thread (title of the message)}
+
+list_Title_clean_2<-list()#new empty list
+
+for (i in 1:1) {
+  
+  temporary<-str_extract_all(Raw_Title_2[[i]], 'html\">(.*?)</a>') #extract authors
+  
+  list_Title_clean_2[[i]]<-temporary #Save the results
+  
+}
+
+Title_2<-list_Title_clean_2#Copy the list
+```
+
+```{r Extract DATES of the messages}
+
+Date_list_2<-list()
+
+for (i in 1:1) {
+  
+  temporary<-str_extract_all(Raw_Title_2[[i]], '<i>(.*?)</i>') #extract authors
+  
+  Date_list_2[[i]]<-temporary #Save the result
+  
+  Date_2<-Date_list_2 #Copy the list
+}
+```
+
+```{r Create Directories Dataframe and List}
+
+Storing_list_2<-list()
+
+for (i in 1:1) {   #Start main loop
+  
+  Merging_list_2<-list() #Create an empty list to store the results of the the sub loop
+  
+  for ( x in 1:length(Title_2[[i]])) { #Start sub loop
+    
+    Test<- data.frame(Title_2[[i]][[x]]) #Import authors
+    
+    colnames(Test)[1] <- "Title" #Rename first column in Authors
+    
+    current<-Authors_2[[i]] #Select current Titles
+    
+    Test[2]<- current[x] #Import Titles
+    
+    colnames(Test)[2] <- "Authors" #Rename second column in Title 
+    
+    Merging_list_2[[x]]<-Test #Save iteration 
+    
+    data<-Date_2[[i]] #Select date
+    
+    Test[3]<-data[x] #Import date
+    
+    colnames(Test)[3]<-"Date" #Rename column
+    
+    Merging_list_2[[x]]<-Test #Save the result of the sub loop
+  }
+  
+  Storing_list_2[[i]]<-Merging_list_2 #Save sub loop into the main list and ressta
+  
+}
+
+Df_2<-bind_rows(Storing_list_2)
+
+```
+
+```{r}
+Df_cleaning_2<-Df_2%>%
+  mutate(Authors=gsub('html">', "", Authors))%>%  #Remove html"> from Authors
+  mutate(Authors=gsub("</a>", "", Authors))%>%    #Remove <a/> from Authors
+  mutate(Title=gsub("<b>","",Title))%>%           #Remove <b> from Title
+  mutate(Title=gsub("</b>","",Title))%>%          #Remove </b> from Title
+  mutate(Date=gsub("<i>","",Date))%>%             #Remove <i> from Date
+  mutate(Date=gsub("</i>","",Date))%>%            #Remove <i/> from Date
+  mutate(Date=gsub("  "," ", Date))%>%            #Replace a double space with a single space
+  mutate(Complex=Date)%>%                         #Copy Date column
+  separate(Complex, into = c("Complex", "Var1", "Var2", "Var3"), sep = " ", fill = "right")%>% #Separate Complex dates in columns on the right
+  select(-"Complex")%>%                           #Remove Complex 
+  unite("Combined", Var1, Var2, Var3, sep="-")%>% #Merge columns with date elements
+  mutate(Combined=gsub("-19","-", Combined))%>%   #Remove 19 before the year
+  mutate(Combined = ifelse(grepl("^[1-9]-", Combined), paste0("0", Combined), Combined)) #Add a 0 if the day is < 10. 
+
+Problematic_date<-Df_cleaning[nchar(Df_cleaning$Combined) != 9, ]%>% #Select date that doesn't have 9 characters. 
+  separate(Date, into = c("Combined", "Var1", "Var2", "Var3"), sep = " ", fill = "right")%>% #Separate Combined dates in colums on the right
+  unite("Combined", Combined, Var1, Var2, sep="-")%>% #Merge columns with date elements
+  mutate(Combined=gsub("-19","-", Combined))%>% #Remove 19 from years
+  select(-"Var3")%>%   #Remove column 
+  mutate(Combined = ifelse(grepl("^[1-9]-", Combined), paste0("0", Combined), Combined)) #Add a 0 if the day is < 10. 
+
+index_problematic <- which(nchar(Df_cleaning$Combined) != 9) #Create the index of problematic dates
+
+Df_cleaning_2$Combined[index_problematic]<-Problematic_date$Combine #Import corrected problematic dates
+
+Df_cleaning_2<-Df_cleaning_2%>%
+  mutate(Combined=gsub("-NA-NA","",Combined))
+
+Directories_2<-Df_cleaning_2
+
+```
+
+```{r Loop to read the HTML and convert in character}
+
+URL_4<- c("http://1997.webhistory.org/www.lists/www-vrml.1995q3/author.html#start",
+          "http://1997.webhistory.org/www.lists/www-vrml.1995q4/author.html#start")
+
+```
+
+
+```{r Loop to read the HTML and convert in character} 
+
+list_html_4<-list() #Create an empty list
+
+for (i in 1:2) { #Start the loop	
+  
+  HTML <- read_html(URL_4[i]) #Read html
+  STRING <- as.character(HTML) #Convert in character
+  
+  list_html_4[i]<-STRING #Save in the list
+  
+} #End of the loop
+
+Copy_4<-list_html_4 #Copy of the list
+
+HTML_df_4<-do.call(rbind, Copy_4) 
+```
+
+```{r Create list of Titles}
+
+list_Raw_4<-list() #Create an empty list to store raw TITLES
+
+for(i in 1:2){ #Start the loop
+  
+  testo_b <- data.frame(regmatches(HTML_df_4[i], gregexpr("<b>(.*?)</b>", HTML_df_4[i])))
+  
+  testo_b<-testo_b[-(1:5),] #Remove Headers
+  
+  testo_b <- head(testo_b, -4) # Remove Footers
+  
+  list_Raw_4[[i]]<-testo_b #Save the results
+  
+}
+
+Authors_4<-list_Raw_4 #Save Titles results
+```
+
+```{r Create a list of RAW titles, authors, dates}
+
+list_Title_4<-list() #Create an empty list to store raw TITLES and AUTHORS
+
+for(i in 1:2){ #Start the loop
+  
+  testo_b <- data.frame(regmatches(HTML_df_4[i], gregexpr("<s messag(.*?)<b>", HTML_df_4[i]))) #Select the content between each title
+  
+  testo_b<-testo_b[-(1:2),] #Remove the headers
+  
+  testo_b <- head(testo_b, -1) # Remove the footers
+  
+  list_Title_4[[i]]<-testo_b #Save the results
+  
+}
+
+Raw_Title_4<-list_Title_4 #Copy the list
+
+```
+
+```{r Extract AUTHORS of each thread (title of the message)}
+
+list_Title_clean_4<-list()#new empty list
+
+for (i in 1:2) {
+  
+  temporary<-str_extract_all(Raw_Title_4[[i]], 'html>(.*?)<a') #extract authors
+  
+  list_Title_clean_4[[i]]<-temporary #Save the results
+  
+}
+
+Title_4<-list_Title_clean_4#Copy the list
+```
+
+```{r Extract DATES of the messages}
+
+Date_list_4<-list()
+
+for (i in 1:2) {
+  
+  temporary<-str_extract_all(Raw_Title_4[[i]], '<i>(.*?)</i>') #extract authors
+  
+  Date_list_4[[i]]<-temporary #Save the result
+  
+  Date_4<-Date_list_4 #Copy the list
+}
+```
+
+```{r Create Directories Dataframe and List}
+
+Storing_list_4<-list()
+
+for (i in 1:2) {   #Start main loop
+  
+  Merging_list_4<-list() #Create an empty list to store the results of the the sub loop
+  
+  for ( x in 1:length(Title_4[[i]])) { #Start sub loop
+    
+    Test<- data.frame(Title_4[[i]][[x]]) #Import authors
+    
+    colnames(Test)[1] <- "Title" #Rename first column in Authors
+    
+    current<-Authors_4[[i]] #Select current Titles
+    
+    Test[2]<- current[x] #Import Titles
+    
+    colnames(Test)[2] <- "Authors" #Rename second column in Title 
+    
+    Merging_list_4[[x]]<-Test #Save iteration 
+    
+    data<-Date_4[[i]] #Select date
+    
+    Test[3]<-data[x] #Import date
+    
+    colnames(Test)[3]<-"Date" #Rename column
+    
+    Merging_list_4[[x]]<-Test #Save the result of the sub loop
+  }
+  
+  Storing_list_4[[i]]<-Merging_list_4 #Save sub loop into the main list and ressta
+  
+}
+
+Df_4<-bind_rows(Storing_list_4)
+
+```
+
+```{r}
+Df_cleaning_4<-Df_4%>%
+  mutate(Authors=gsub('html">', "", Authors))%>%  #Remove html"> from Authors
+  mutate(Authors=gsub("</a>", "", Authors))%>%    #Remove <a/> from Authors
+  mutate(Title=gsub("<b>","",Title))%>%           #Remove <b> from Title
+  mutate(Title=gsub("</b>","",Title))%>%          #Remove </b> from Title
+  mutate(Date=gsub("<i>","",Date))%>%             #Remove <i> from Date
+  mutate(Date=gsub("</i>","",Date))%>%            #Remove <i/> from Date
+  mutate(Date=gsub("  "," ", Date))%>%            #Replace a double space with a single space
+  mutate(Complex=Date)%>%                         #Copy Date column
+  separate(Complex, into = c("Complex", "Var1", "Var2", "Var3"), sep = " ", fill = "right")%>% #Separate Complex dates in columns on the right
+  select(-"Complex")%>%                           #Remove Complex 
+  unite("Combined", Var1, Var2, Var3, sep="-")%>% #Merge columns with date elements
+  mutate(Combined=gsub("-19","-", Combined))%>%   #Remove 19 before the year
+  mutate(Combined = ifelse(grepl("^[1-9]-", Combined), paste0("0", Combined), Combined)) #Add a 0 if the day is < 10. 
+
+Problematic_date<-Df_cleaning[nchar(Df_cleaning$Combined) != 9, ]%>% #Select date that doesn't have 9 characters. 
+  separate(Date, into = c("Combined", "Var1", "Var2", "Var3"), sep = " ", fill = "right")%>% #Separate Combined dates in colums on the right
+  unite("Combined", Combined, Var1, Var2, sep="-")%>% #Merge columns with date elements
+  mutate(Combined=gsub("-19","-", Combined))%>% #Remove 19 from years
+  select(-"Var3")%>%   #Remove column 
+  mutate(Combined = ifelse(grepl("^[1-9]-", Combined), paste0("0", Combined), Combined)) #Add a 0 if the day is < 10. 
+
+index_problematic <- which(nchar(Df_cleaning$Combined) != 9) #Create the index of problematic dates
+
+Df_cleaning_4$Combined[index_problematic]<-Problematic_date$Combine #Import corrected problematic dates
+
+Df_cleaning_4<-Df_cleaning_4%>%
+  mutate(Combined=gsub("-NA-NA","",Combined))
+
+Directories_4<-Df_cleaning_4
+```
+
+```{r 1}
+
+base<- c("http://1997.webhistory.org/www.lists/www-vrml.1994/",
+         "http://1997.webhistory.org/www.lists/www-vrml.1995q1/")
+         
+         
+list_URL<-list()
+
+for(i in 1:2){ #Start the loop to extract URL number
+  
+  testo_b <- data.frame(regmatches(HTML_df[i], gregexpr("a href=(.*?)>", HTML_df[i])))
+  
+  testo_b<-testo_b[-(1:4),] #Remove Headers
+  
+  testo_b <- head(testo_b, -5) # Remove Footers
+  
+  testo_b<-gsub("a href=","",testo_b) #Set URL start
+  
+  testo_b<-gsub(">","",testo_b) #Set URL end
+  
+  testo_b<-as.data.frame(testo_b) #Convert into a dataframe 
+  
+  list_URL[[i]]<-testo_b #Save the dataframe
+}
+
+
+URL_list<-list() #Create an empty list
+
+for (i in 1:2) { #Start the loop to create the URLs
+  
+  temp<-data.frame(list_URL[i])%>% #Create a temporary variable
+    mutate(Url=paste0(base[i], testo_b))%>% #Merge URL base with URL number
+    mutate(Url=gsub('"',"",Url)) #Remove " symbol 
+  
+  URL_list[[i]]<-temp #Save the results
+}
+
+
+URL_df<-do.call(rbind, URL_list) #Convert in a dataframe
+```
+
+```{r Merge URL in the dataframe and rename columns}
+
+Directories<-Directories%>% 
+  mutate(Url=URL_df$Url)
+
+colnames(Directories)[3] <-"Summary"
+
+colnames(Directories)[4]<-"Date"
+
+```
+
+
+```{r 2}
+
+base<- c("http://1997.webhistory.org/www.lists/www-vrml.1995q2/")
+         
+         
+list_URL<-list()
+
+for(i in 1:1){ #Start the loop to extract URL number
+  
+  testo_b <- data.frame(regmatches(HTML_df_2[i], gregexpr("a href=(.*?)>", HTML_df_2[i])))
+  
+  testo_b<-testo_b[-(1:4),] #Remove Headers
+  
+  testo_b <- head(testo_b, -5) # Remove Footers
+  
+  testo_b<-gsub("a href=","",testo_b) #Set URL start
+  
+  testo_b<-gsub(">","",testo_b) #Set URL end
+  
+  testo_b<-as.data.frame(testo_b) #Convert into a dataframe 
+  
+  list_URL[[i]]<-testo_b #Save the dataframe
+}
+
+
+URL_list<-list() #Create an empty list
+
+for (i in 1:1) { #Start the loop to create the URLs
+  
+  temp<-data.frame(list_URL[i])%>% #Create a temporary variable
+    mutate(Url=paste0(base[i], testo_b))%>% #Merge URL base with URL number
+    mutate(Url=gsub('"',"",Url)) #Remove " symbol 
+  
+  URL_list[[i]]<-temp #Save the results
+}
+
+
+URL_df_2<-do.call(rbind, URL_list) #Convert in a dataframe
+```
+
+```{r Merge URL in the dataframe and rename columns}
+
+Directories_2<-Directories_2%>% 
+  mutate(Url=URL_df_2$Url)
+
+colnames(Directories_2)[3] <-"Summary"
+
+colnames(Directories_2)[4]<-"Date"
+
+```
+
+
+```{r 3}
+
+base<- c("http://1997.webhistory.org/www.lists/www-vrml.1995q3/",
+         "http://1997.webhistory.org/www.lists/www-vrml.1995q4/")
+         
+         
+list_URL<-list()
+
+for(i in 1:2){ #Start the loop to extract URL number
+  
+  testo_b <- data.frame(regmatches(HTML_df_4[i], gregexpr("s messag(.*?)>", HTML_df_4[i])))
+  
+  testo_b<-testo_b[-(1:4),] #Remove Headers
+  
+  testo_b <- head(testo_b, -5) # Remove Footers
+  
+  testo_b<-gsub("s messag","",testo_b) #Set URL start
+  
+  testo_b<-gsub(">","",testo_b) #Set URL end
+  
+  testo_b<-as.data.frame(testo_b) #Convert into a dataframe 
+  
+  list_URL[[i]]<-testo_b #Save the dataframe
+}
+
+
+URL_list<-list() #Create an empty list
+
+for (i in 1:2) { #Start the loop to create the URLs
+  
+  temp<-data.frame(list_URL[i])%>% #Create a temporary variable
+    mutate(Url=paste0(base[i], testo_b))%>% #Merge URL base with URL number
+    mutate(Url=gsub('"',"",Url)) #Remove " symbol 
+  
+  URL_list[[i]]<-temp #Save the results
+}
+
+
+URL_df_4<-do.call(rbind, URL_list) #Convert in a dataframe
+```
+
+```{r Merge URL in the dataframe and rename columns}
+
+Directories_4<-Directories_4%>% 
+  mutate(Url=URL_df_4$Url)
+
+colnames(Directories_4)[3] <-"Summary"
+
+colnames(Directories_4)[4]<-"Date"
+
+```
+
+
+```{r Scraping messages (DATA)}
+
+All_dir<-rbind(Directories,Directories_2,Directories_4)
+Metadata <- All_dir #Import Excel Metadata
+
+URL<- Metadata$Url # Create a vector of links excluding the problematic link
+
+```
+
+```{r Loop to scrape}
+
+message("Beginning of the loop: ", Sys.time())
+List_Text <- list()  # Creazione di una lista vuota per i risultati
+error_count <- 0     # Inizializzazione del contatore per gli errori 404
+
+List_Text <- list()  
+error_count <- 0
+
+for (i in 1:9114) {   # Selezione della quantità di link
+  
+  # Utilizzo di tryCatch per catturare eventuali errori
+  tryCatch({
+    
+    # Lettura dell'HTML dalla URL corrente
+    Test <- read_html(URL[i])
+    
+    # Conversione del contenuto HTML in formato carattere
+    Body <- as.character(Test)
+    
+    # Selezione del contenuto tra "body=start" e "body=end"
+    Cleaned <- sub(".*<!-- body=\"start\" -->(.*)<!-- body=\"end\" -->.*", "\\1", Body)
+    
+    # Rimozione dei tag HTML
+    Cleaned <- str_replace_all(Cleaned, "<[^>]+>", "")
+    
+    # Rimozione dei caratteri \n
+    Cleaned <- gsub("\n", " ", Cleaned)
+    
+    # Aggiunta dell'URL e del contenuto pulito alla lista
+    List_Text[[i]] <- list(URL = URL[i], Content = Cleaned)
+    
+  }, error = function(e) {
+    
+    # Gestione degli errori 404
+    if (grepl("404", e$message)) {
+      message(Sys.time(), " - Errore 404 per URL: ", URL[i])
+      error_count <- error_count + 1  # Incrementa il contatore degli errori 404
+      
+    # Gestione di altri tipi di errore
+    } else {
+      message(Sys.time(), " - Errore per URL: ", URL[i], " - ", e$message)
+    }
+  })
+}
+
+# Converti la lista in un dataframe
+List_Loop <- do.call(rbind, lapply(List_Text, function(x) data.frame(URL = x$URL, Content = x$Content, stringsAsFactors = FALSE)))
+
+# Stampa del numero totale di errori 404 alla fine del loop
+message("Numero totale di errori 404: ", error_count)
+ # Copia la lista con i dati del scraping
+
+message("End of the lopp: ", Sys.time())
+
+```
+
+```{r Complete the dataframe}
+
+names(All_dir)[names(All_dir) == "Url"] <- "URL"
+
+Scraping_df <- merge(All_dir, List_Loop, by = "URL", all.x = TRUE)
+
+names(Scraping_df)[names(Scraping_df) == "Content"] <- "Scraping"
+
+ # Merge Data and Metadata.
+
+```
+
+```{r Complete the dataframe and clean the date}
+
+Scraping_df <- Scraping_df %>%
+  mutate(Scraping = gsub("&gt;", ">", Scraping))%>% #Remove exceeding HTML tag in the Scraping
+  mutate(File_name = gsub("http://1997.webhistory.org/www.lists/", "", URL))%>% #Create a column with an univocal file name based on URL
+  mutate(File_name = gsub("/", ".", File_name))%>% #Remove special characters not allowed by Windows for saving
+  select(File_name, Authors, Title, Scraping, URL, everything(), Date)%>%
+  select(everything(), Date, Summary)%>%
+  mutate(Timing=Summary)%>%
+  separate(Timing, into=  c("Var1","Var2", "Var3","Var4", "Var5", "Var6", "Var7"), sep = " ", fill = "right")%>%
+  unite(Var6, Var6, Var7, sep="-")%>%
+  rename(Time_zone=Var6, Time=Var5)%>%
+  select(-Var1, -Var2, -Var3, -Var4)%>%
+  mutate(Time = ifelse(grepl("^\\d{2}:\\d{2}$", Time), paste0(Time, ":00"), Time))%>%
+  mutate(Time = ifelse(grepl("^\\d{1}:\\d{2}:\\d{2}$", Time), paste0("0", Time), Time))%>%
+  mutate(Date=gsub("-19","-", Date))%>%   #Remove 19 before the year
+  mutate(Date = ifelse(grepl("^[1-9]-", Date), paste0("0", Date),Date))
+
+#Scraping_df$Date<-dmy(Time$Date)
+
+index_problematic <- which(nchar(Scraping_df$Date) != 9) #Create an Index of Problematic Date in Scraping_df
+
+Problematic_date<-Scraping_df[index_problematic, ]%>%
+  select(-Date, -Time, -Time_zone)%>%#271 Problematic Date
+  mutate(Complex=Summary)%>%#Copy the Summary column
+  mutate(Complex=gsub("199","9",Complex))%>% #Remove 19 from 19s date
+  separate(Complex, into = c("Combined", "Var1", "Var2", "Var3", "Var4"), sep = " ", fill = "right")%>% #Separate Combined dates in colums on the right
+  unite("Combined", Combined, Var1, Var2, sep="-")%>% #Merge columns
+  mutate(Combined = ifelse(grepl("^[1-9]-", Combined), paste0("0", Combined), Combined))%>%#Add a 0 if the day is < 10. 
+  rename(Time=Var3, Time_zone=Var4, Date=Combined)%>%
+  mutate(Date=gsub("-19","-", Date))%>%
+  mutate(Date = ifelse(grepl("^[1-9]-", Date), paste0("0", Date), Date))
+
+Scraping_df$Date[index_problematic]<-Problematic_date$Date #Import Solved Problematic in Scraping_df
+index_problematic <- which(nchar(Scraping_df$Date) != 9)
+
+Scraping_df$Date<-dmy(Scraping_df$Date)
+
+#Find and solve problematic Time
+
+View(Scraping_df)
+```
+
+```{r Solve problematic Time}
+
+index_problematic <- which(!grepl("^\\d{2}:\\d{2}:\\d{2}$", Scraping_df$Time))
+
+Problematic_time <- Time[index_problematic, ]%>%
+  select(-Time, -Time_zone)%>%
+  select(Date, everything(), Summary)%>%
+  mutate(Timing=Summary)%>%
+  separate(Timing, into = c("Var1", "Var2", "Var3", "Var4",  "Var5"), sep = " ", fill = "right")%>%
+  rename(Time_zone=Var5, Time=Var4)%>%
+  mutate(Time = ifelse(grepl("^\\d{2}:\\d{2}$", Time), paste0(Time, ":00"), Time))%>%
+  mutate(Time = ifelse(grepl("^\\d{1}:\\d{2}:\\d{2}$", Time), paste0("0", Time), Time))%>%
+  mutate(Date=gsub("-19","-", Date))%>%   #Remove 19 before the year
+  mutate(Date = ifelse(grepl("^[1-9]-", Date), paste0("0", Date),Date))%>%
+  select(-Var1, -Var2, -Var3)%>%
+  select(File_name, Authors, Title, Date, Time, Time_zone, Summary, Scraping, URL)
+
+Scraping_df$Time[index_problematic]<-Problematic_time$Time
+Scraping_df$Time_zone[index_problematic]<-Problematic_time$Time_zone
+
+index_problematic <- which(!grepl("^\\d{2}:\\d{2}:\\d{2}$", Scraping_df$Time))
+Problematic_time <- Scraping_df[index_problematic, ]
+
+Scraping_df$Time[index_problematic[1]]<-"14:17:00"
+Scraping_df$Time_zone[index_problematic[1]]<-"-0400"
+
+Scraping_df$Time[index_problematic[2]]<-"08:50:09"
+Scraping_df$Time_zone[index_problematic[2]]<-"+0200"
+
+Scraping_df$Time[index_problematic[3]]<-"10:00:00"
+Scraping_df$Time_zone[index_problematic[3]]<-"-0500"
+
+index_problematic <- which(!grepl("^\\d{2}:\\d{2}:\\d{2}$", Scraping_df$Time))
+```
+
+```{r Find empty messages}
+
+emptyLine<-Scraping_df[is.na(Scraping_df$Scraping) |  Scraping_df$Scraping =="", ]
+
+#Find empty observation. 20 observation are empty (Qualitatively verified) 
+```
+
+
+```{r Saving as rds and txt}
+
+#Saving as .rds
+saveRDS(Scraping_df, file = "WWWVRML_df.rds")
+
+# Excel delle Directories
+
+Simply_Directories<-Scraping_df%>%
+  select(-Scraping)
+
+write.xlsx(Simply_Directories, file = "Directories_VRML.xlsx") #Create an Excel of the Directories
+
+#Saving as txt in a subfolder
+
+Saving_df <- Scraping_df %>%
+  filter(!(URL %in% emptyLine$URL))
+
+output_dir <- "WWWVRML_Text" #Set the subfolder's directory
+
+dir.create(output_dir) # Create the subfolder's directory
+
+for (i in 1:8587) { # Loop for saving file with file name (final part of the URL, without "/") 
+  file_name <- file.path(output_dir, paste0(Scraping_df$File_name[i], ".txt"))
+  writeLines(Scraping_df$File_name[i], file_name)
+}
+
+message("End of the code: ", Sys.time())
+```
+```{r}
+
+
+Timeline<- Scraping_df %>%
+  mutate(Date_Ym = format(Date, "%Y-%m"))%>%  # Formatta la data come "Anno-Mese"
+  group_by(Date_Ym) %>%                        # Raggruppa per mese e anno
+  summarise(Tot_Month = n())   
+
+ggplot(Timeline, aes(x = Date_Ym, y = Tot_Month)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  geom_text(aes(label = Tot_Month), vjust = -0.3, size=3)+#
+  xlab("Timeline (Y-m)") +
+  ylab("Numero di Messaggi") +
+  ggtitle("Totale Mensile dei Messaggi") +
+  scale_x_discrete(limits = Timeline$Date_Ym)
+ 
+```
+
+
+
+
