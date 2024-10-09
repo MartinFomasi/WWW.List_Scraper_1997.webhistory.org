@@ -765,7 +765,7 @@ message("Numero totale di errori 404: ", error_count)
  # Copia la lista con i dati del scraping
 
 message("End of the lopp: ", Sys.time())
-
+beep(1)
 ```
 
 ```{r Complete the dataframe}
