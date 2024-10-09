@@ -37,6 +37,9 @@ library(openxlsx)
 if (!require("lubridate")) install.packages("lubridate")
 library("lubridate")
 
+if (!require("beepr")) install.packages("beepr")
+library("beepr")
+
 if (!require("ggplot2")) install.packages("ggplot2")
 library("ggplot2")
 ```
@@ -401,30 +404,18 @@ message("End of the code: ", Sys.time())
 ```{r Saving as rds and txt}
 
 Timeline<- Scraping_df %>%
-  mutate(Date_Ym = format(Date, "%Y-%m"))%>%  # Formatta la data come "Anno-Mese"
-  group_by(Date_Ym) %>%                        # Raggruppa per mese e anno
-  summarise(Tot_Month = n())   
+  mutate(Date_Ym = format(Date, "%Y-%m"))%>%  # New column and date format
+  group_by(Date_Ym) %>%                        # Group by Date
+  summarise(Tot_Month = n())                   #Monthtly tot
 
-ggplot(Timeline, aes(x = Date_Ym, y = Tot_Month)) +
-  geom_bar(stat = "identity") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-  geom_text(aes(label = Tot_Month), vjust = -0.3, size=3)+#
-  xlab("Timeline (Y-m)") +
-  ylab("Numero di Messaggi") +
-  ggtitle("Totale Mensile dei Messaggi") +
-  scale_x_discrete(limits = Timeline$Date_Ym) 
-
-```
-
-```{r}
-Time_zone<-Scraping_df%>%
-count(Time_zone)%>%
-  arrange(desc(n))
-
-Scraping_df$ISO_Date <- format(
-  as.POSIXct(Scraping_df$Summary, format="%a, %d %b %Y %H:%M:%S %z"),
-  "%Y-%m-%dT%H:%M:%S"
-)
+ggplot(Timeline, aes(x = Date_Ym, y = Tot_Month)) +            #Create a timeline
+  geom_bar(stat = "identity") +                                #Chose bars
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +   #Custom axis
+  geom_text(aes(label = Tot_Month), vjust = -0.3, size=3)+     #Add values' label
+  xlab("Timeline (Y-m)") +                                     #Title x axis
+  ylab("Quantity of messages") +                               #Title y axis
+  ggtitle("Message distribution over time") +                  #Title graph
+  scale_x_discrete(limits = Timeline$Date_Ym)                  #Set limits of the scale
 
 ```
 
