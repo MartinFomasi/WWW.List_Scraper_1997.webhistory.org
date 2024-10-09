@@ -1,11 +1,14 @@
 ---
-title: "Test"
+title: "Fomasi, M. (2024). WWWHTML_Scraper (Versione 1.0) [R; Windows (64x)]"
 author: "Martin Fomasi"
-date: "2024-09-29"
+date: "2024-10-09"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
+if (!require("knitr")) install.packages("knitr")
+library(knitr)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
