@@ -7,6 +7,9 @@ For_more_legal_info: http://1997.webhistory.org/legal.html
 ---
 
 ```{r setup, include=FALSE}
+if (!require("knitr")) install.packages("knitr")
+library(knitr)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
