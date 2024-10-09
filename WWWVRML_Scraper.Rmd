@@ -37,9 +37,11 @@ library(openxlsx)
 if (!require("lubridate")) install.packages("lubridate")
 library("lubridate")
 
+if (!require("beepr")) install.packages("beepr")
+library("beepr")
+
 if (!require("ggplot2")) install.packages("ggplot2")
 library("ggplot2")
-
 ```
 
 ```{r Scraping Directories (METADATA)}
@@ -710,6 +712,8 @@ URL<- Metadata$Url # Create a vector of links excluding the problematic link
 ```{r Loop to scrape}
 
 message("Beginning of the loop: ", Sys.time())
+beep(2)
+
 List_Text <- list()  # Creazione di una lista vuota per i risultati
 error_count <- 0     # Inizializzazione del contatore per gli errori 404
 
@@ -887,28 +891,24 @@ for (i in 1:8587) { # Loop for saving file with file name (final part of the URL
   file_name <- file.path(output_dir, paste0(Scraping_df$File_name[i], ".txt"))
   writeLines(Scraping_df$File_name[i], file_name)
 }
-
-message("End of the code: ", Sys.time())
 ```
-```{r}
 
+```{r Timeline: message distribution}
 
 Timeline<- Scraping_df %>%
   mutate(Date_Ym = format(Date, "%Y-%m"))%>%  # Formatta la data come "Anno-Mese"
   group_by(Date_Ym) %>%                        # Raggruppa per mese e anno
   summarise(Tot_Month = n())   
 
-ggplot(Timeline, aes(x = Date_Ym, y = Tot_Month)) +
-  geom_bar(stat = "identity") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-  geom_text(aes(label = Tot_Month), vjust = -0.3, size=3)+#
-  xlab("Timeline (Y-m)") +
-  ylab("Numero di Messaggi") +
-  ggtitle("Totale Mensile dei Messaggi") +
-  scale_x_discrete(limits = Timeline$Date_Ym)
- 
+ggplot(Timeline, aes(x = Date_Ym, y = Tot_Month)) +             # Create a timeline
+  geom_bar(stat = "identity", width = 0.65) +                   # Choose bars with adjusted width
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +    # Custom axis
+  geom_text(aes(label = Tot_Month), vjust = -0.3, size = 2.5) + # Add values' label
+  xlab("Timeline (Years-Month)") +                              # Title x axis
+  ylab("Quantity of messages") +                                # Title y axis
+  ggtitle("WWWVRML: Message distribution over time") +          # Title graph
+  scale_x_discrete(limits = Timeline$Date_Ym)                   # Set limits for x axis
+
+message("End of the code: ", Sys.time())
+beep(2)
 ```
-
-
-
-
