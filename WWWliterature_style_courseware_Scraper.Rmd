@@ -1,5 +1,5 @@
 ---
-title: "WWWlisterature""WWWWcourseware""WWWStyle"
+title: "Fomasi, M. (2024). WWWliterature_style_courseware (Versione 1.0) [R; Windows (64x)]"
 author: "Martin Fomasi"
 date: "2024-09-29"
 output: html_document
