@@ -12,7 +12,7 @@ Please note:
 
   2) Neither The World Wide Web History Project nor the developer of this scraper is liable for any special, incidental, indirect, or consequential damages resulting from the use of the data or this scraper, including but not limited to loss of data or profits.
 
-  3) The use of this scraper does not imply any endorsement by The World Wide Web History Project of this tool or any other products.
+  3) Neither the production, use, nor modifications of these scrapers imply any endorsement by The World Wide Web History Project of these tools, their developers, or any associated products.
 
 ## Reference
 Please use the following references when citing or using these scrapers:
