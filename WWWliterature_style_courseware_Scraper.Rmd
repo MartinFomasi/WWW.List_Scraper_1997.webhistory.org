@@ -36,6 +36,12 @@ library(openxlsx)
 
 if (!require("lubridate")) install.packages("lubridate")
 library("lubridate")
+
+if (!require("beepr")) install.packages("beepr")
+library("beepr")
+
+if (!require("ggplot2")) install.packages("ggplot2")
+library("ggplot2")
 ```
 
 ```{r Scraping Directories (METADATA)}
@@ -296,6 +302,7 @@ for (i in 1:607) {  # Select quantity of links
 List_Loop<-List_Text # Copy the list with the Scraping
 
 message("End of the lopp: ", Sys.time())
+beep(1)
 
 ```
 
@@ -357,6 +364,7 @@ for (x in 1:nrow(current) ) { # Loop for saving file with file name (final part 
  }
 }
 message("End of the code: ", Sys.time())
+beep(2)
 ```
 
 
