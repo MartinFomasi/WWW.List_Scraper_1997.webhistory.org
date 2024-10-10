@@ -17,7 +17,7 @@ Please note:
 # What does the Scraper do?
 This repository contains a set of scrapers designed to create a dataframe and make the exploration of mailing lists easier, as the original website offers limited search functionality and lacks well-structured dataframes for both metadata and messages.
 
-The scraper starts from the mailing list directories sorted by subject, as this option provides the most metadata. It starts by creating a dataframe with key metadata for each message, including Author, Title, Date, Time, Time Zone, and URL. Dates are converted from the RFC 5322 format to the ISO 8601 standard, with the Date, Time, and Time Zone split into separate columns to facilitate data analysis. The original RFC 5322-formatted dates are preserved in the summary column for reference.
+The scraper starts from the mailing list directories sorted by subject, as this option provides the most metadata. It starts by creating a dataframe with key metadata for each message, including Author, Title, Date, Time, Time Zone, and URL. Dates are converted from the RFC 5322 format to the ISO 8601 standard, with the Date, Time, and Time Zone split into separate columns to facilitate data analysis. The original RFC 5322-formatted dates are preserved in the "Summary" column for reference.
 
 In some cases, manual corrections were applied to Date, Time, and Time Zone metadata due to formatting errors in the original data. After constructing the directories' dataframe, the scraper downloads the URLs containing the messages, removes the headers and footers (which often include navigation options and metadata), and finally saves the message content into the dataframe.
 
