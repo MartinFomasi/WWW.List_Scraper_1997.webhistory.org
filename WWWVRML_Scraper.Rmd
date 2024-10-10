@@ -827,7 +827,7 @@ View(Scraping_df)
 
 index_problematic <- which(!grepl("^\\d{2}:\\d{2}:\\d{2}$", Scraping_df$Time))
 
-Problematic_time <- Time[index_problematic, ]%>%
+Problematic_time <- Scraping_df[index_problematic, ]%>%
   select(-Time, -Time_zone)%>%
   select(Date, everything(), Summary)%>%
   mutate(Timing=Summary)%>%
