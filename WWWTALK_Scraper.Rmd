@@ -1,9 +1,10 @@
 ---
-title: "Fomasi, M. (2024). WWWTALK_Scraper (Versione 1.0) [R; Windows (64x)]"
-output: html_document
+title: "Fomasi, M. (2024). WWWTalk_Scraper (Versione 1.0) [R; Windows (64x)]"
+author: "Martin Fomasi"
 date: "2024-09-27"
-Legal_info_WWWTALK: Copyright © 1996-2003 The World Wide Web History Project and Arcady Press.
-For_more_legal_info: http://1997.webhistory.org/legal.html
+Legal_info_WWWTalk: "Copyright © 1996-2003 The World Wide Web History Project and Arcady Press"
+For_more_legal_info: "http://1997.webhistory.org/legal.html"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
