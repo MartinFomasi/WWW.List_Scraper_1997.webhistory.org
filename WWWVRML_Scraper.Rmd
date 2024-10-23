@@ -210,6 +210,7 @@ Df_cleaning<-Df_cleaning%>%
 Directories<-Df_cleaning #Copy the Dataframe 9982
 
 ```
+
 ```{r Loop to read the HTML and convert in character}
 
 URL_2<- c("http://1997.webhistory.org/www.lists/www-vrml.1995q2/author.html#start")
@@ -344,10 +345,10 @@ Df_2<-bind_rows(Storing_list_2)
 
 ```{r}
 Df_cleaning_2<-Df_2%>%
-  mutate(Authors=gsub('html">', "", Authors))%>%  #Remove html"> from Authors
-  mutate(Authors=gsub("</a>", "", Authors))%>%    #Remove <a/> from Authors
-  mutate(Title=gsub("<b>","",Title))%>%           #Remove <b> from Title
-  mutate(Title=gsub("</b>","",Title))%>%          #Remove </b> from Title
+  mutate(Title=gsub('html">', "", Title))%>%  #Remove html"> from Authors
+  mutate(Title=gsub("</a>", "", Title))%>%    #Remove <a/> from Authors
+  mutate(Authors=gsub("<b>","",Authors))%>%           #Remove <b> from Title
+  mutate(Authors=gsub("</b>","",Authors))%>%          #Remove </b> from Title
   mutate(Date=gsub("<i>","",Date))%>%             #Remove <i> from Date
   mutate(Date=gsub("</i>","",Date))%>%            #Remove <i/> from Date
   mutate(Date=gsub("  "," ", Date))%>%            #Replace a double space with a single space
@@ -511,10 +512,10 @@ Df_4<-bind_rows(Storing_list_4)
 
 ```{r}
 Df_cleaning_4<-Df_4%>%
-  mutate(Authors=gsub('html">', "", Authors))%>%  #Remove html"> from Authors
-  mutate(Authors=gsub("</a>", "", Authors))%>%    #Remove <a/> from Authors
-  mutate(Title=gsub("<b>","",Title))%>%           #Remove <b> from Title
-  mutate(Title=gsub("</b>","",Title))%>%          #Remove </b> from Title
+  mutate(Title=gsub('html">', "", Title))%>%  #Remove html"> from Authors
+  mutate(Title=gsub("</a>", "", Title))%>%    #Remove <a/> from Authors
+  mutate(Authors=gsub("<b>","",Authors))%>%           #Remove <b> from Title
+  mutate(Authors=gsub("</b>","",Authors))%>%          #Remove </b> from Title
   mutate(Date=gsub("<i>","",Date))%>%             #Remove <i> from Date
   mutate(Date=gsub("</i>","",Date))%>%            #Remove <i/> from Date
   mutate(Date=gsub("  "," ", Date))%>%            #Replace a double space with a single space
@@ -772,7 +773,8 @@ beep(1)
 
 names(All_dir)[names(All_dir) == "Url"] <- "URL"
 
-Scraping_df <- merge(All_dir, List_Loop, by = "URL", all.x = TRUE)
+Scraping_df <- merge(All_dir, List_Loop, by = "URL", all.x = TRUE)%>%
+  rename(Url=URL)
 
 names(Scraping_df)[names(Scraping_df) == "Content"] <- "Scraping"
 
@@ -786,7 +788,7 @@ Scraping_df <- Scraping_df %>%
   mutate(Scraping = gsub("&gt;", ">", Scraping))%>% #Remove exceeding HTML tag in the Scraping
   mutate(File_name = gsub("http://1997.webhistory.org/www.lists/", "", URL))%>% #Create a column with an univocal file name based on URL
   mutate(File_name = gsub("/", ".", File_name))%>% #Remove special characters not allowed by Windows for saving
-  select(File_name, Authors, Title, Scraping, URL, everything(), Date)%>%
+  select(File_name, Authors, Title, Scraping, Url, everything(), Date)%>%
   select(everything(), Date, Summary)%>%
   mutate(Timing=Summary)%>%
   separate(Timing, into=  c("Var1","Var2", "Var3","Var4", "Var5", "Var6", "Var7"), sep = " ", fill = "right")%>%
@@ -838,7 +840,7 @@ Problematic_time <- Scraping_df[index_problematic, ]%>%
   mutate(Date=gsub("-19","-", Date))%>%   #Remove 19 before the year
   mutate(Date = ifelse(grepl("^[1-9]-", Date), paste0("0", Date),Date))%>%
   select(-Var1, -Var2, -Var3)%>%
-  select(File_name, Authors, Title, Date, Time, Time_zone, Summary, Scraping, URL)
+  select(File_name, Authors, Title, Date, Time, Time_zone, Summary, Scraping, Url)
 
 Scraping_df$Time[index_problematic]<-Problematic_time$Time
 Scraping_df$Time_zone[index_problematic]<-Problematic_time$Time_zone
@@ -856,6 +858,8 @@ Scraping_df$Time[index_problematic[3]]<-"10:00:00"
 Scraping_df$Time_zone[index_problematic[3]]<-"-0500"
 
 index_problematic <- which(!grepl("^\\d{2}:\\d{2}:\\d{2}$", Scraping_df$Time))
+
+
 ```
 
 ```{r Find empty messages}
@@ -912,3 +916,4 @@ ggplot(Timeline, aes(x = Date_Ym, y = Tot_Month)) +             # Create a timel
 message("End of the code: ", Sys.time())
 beep(2)
 ```
+
