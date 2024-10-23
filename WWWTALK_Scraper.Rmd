@@ -445,10 +445,10 @@ Missing_Date<-Scraping_df%>% #Solve error
 
 ```
 
-```{r Saving as .rds .txt .xlsx }
+```{r Saving as rds and txt}
 
 #Saving as .rds
-saveRDS(Scraping_df, file = "WWWTalk.rds") #Saving as .rds
+saveRDS(Scraping_df, file = "WWWTALK_df.rds") #Saving as .rds
 
 # Excel delle Directories
 
@@ -456,10 +456,10 @@ Directories<-Directories%>%
   mutate(File_name=Scraping_df$File_name)%>% #Import File_na,e
   select(File_name, everything()) #Arrange variables
 
-write.xlsx(Directories, file = "Directories.xlsx") #Create an Excel of the Directories
+write.xlsx(Directories, file = "Directories_WWWTALK.xlsx") #Create an Excel of the Directories
 
 #Saving as txt in a subfolder
-output_dir <- "WWWTalk_Text" #Set the subfolder's directory
+output_dir <- "WWWTALK_Text" #Set the subfolder's directory
 
 dir.create(output_dir) # Create the subfolder's directory
 
@@ -467,6 +467,8 @@ for (i in 1:10559) { # Loop for saving file with file name (final part of the UR
   file_name <- file.path(output_dir, paste0(Scraping_df$File_name[i], ".txt")) #Create file name
   writeLines(Scraping_df$Scraping[i], file_name) #Save file
 }
+
+```
 
 ```
 
