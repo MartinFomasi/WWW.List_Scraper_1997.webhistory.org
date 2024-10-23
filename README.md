@@ -23,7 +23,7 @@ In some cases, manual corrections were applied to Date, Time, and Time Zone meta
 
 Both directory and message scraping involve conversion from HTML to string format, so some special characters might not have been fully reconverted during the process. A message from WWWTalk could not be converted and had to be imported manually. The problematic message is saved in the .txt file called 'missing_link' and will be automatically imported in the scraper.
 
-The table below shows the total number of messages and indicates how many are empty or lack a date. In WWWVRML, many messages are missing because the URLs return a 404 error. In other mailing lists, the URLs are accessible, but the message has no content.
+The table below shows the total number of messages and indicates how many are empty or lack a date. Empty message are messages wich doesn't have content or error 404. In WWWVRML, many messages are missing because the URLs return a 404 error. In the other mailing lists, the URLs are accessible, but the message has no content.
 
 ![image](https://github.com/user-attachments/assets/63aa633e-459d-48ea-8110-305ec2b435b9)
 
