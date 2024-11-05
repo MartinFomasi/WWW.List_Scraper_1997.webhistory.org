@@ -14,16 +14,39 @@ Please note:
 
   3) Neither the production, use, nor modifications of these scrapers imply any endorsement by The World Wide Web History Project of these tools, their developers, or any associated products.
 
-# What does the Scraper do?
-This repository contains a set of scrapers designed to create a dataframe and make the exploration of mailing lists easier, as the original website offers limited search functionality and lacks well-structured dataframes for both metadata and messages.
+## What does the Scraper do?
+This repository contains a set of scrapers designed to create a dataframe, making mailing list exploration easier. The original website offers limited search functionality and lacks well-structured dataframes for both metadata and message content.
 
-The scraper starts from the mailing list directories sorted by subject, as this option provides the most metadata. It starts by creating a dataframe with key metadata for each message, including Author, Title, Date, Time, Time Zone, and URL. Dates are converted from the RFC 5322 format to the ISO 8601 standard, with the Date, Time, and Time Zone split into separate columns to facilitate data analysis. The original RFC 5322-formatted dates are preserved in the "Summary" column for reference.
+1. **Meadata Extraction**: The scraper starts by gathering metadata from mailing list directories sorted by subject, as this structure provides the most comprehensive metadata. The extracted metadata includes:
 
-In some cases, manual corrections were applied to Date, Time, and Time Zone metadata due to formatting errors in the original data. After constructing the directories' dataframe, the scraper downloads the URLs containing the messages, removes the headers and footers (which often include navigation options and metadata), and finally saves the message content into the dataframe.
+  * Author
+  * Title
+  * Date (converted to ISO 8601 format)
+  * Time and Time Zone (in ISO 8601 format)
+  * URL
 
-Both directory and message scraping involve conversion from HTML to string format, so some special characters might not have been fully reconverted during the process. A message from WWWTalk could not be converted and had to be imported manually. The problematic message is saved in the .txt file called 'missing_link' and will be automatically imported in the scraper.
+Additionally, the original date format (RFC 5322) is preserved in a “Summary” column for reference.
 
-The table below shows the total number of messages and indicates how many are empty or lack a date. Empty message are messages wich doesn't have content or error 404. In WWWVRML, many messages are missing because the URLs return a 404 error. In the other mailing lists, the URLs are accessible, but the message has no content.
+2. **Data Standardization**
+   
+  * Date Conversion: Dates are converted from RFC 5322 to ISO 8601 format for easier sorting and analysis.
+  * Column Splitting: Date, Time, and Time Zone are split into separate columns to support time-based filtering and analysis.
+  * Manual Corrections: Some entries required manual corrections due to inconsistent or erroneous formatting in the original data.
+
+3. **Message Content Scraping**
+
+  * Content Retrieval: The scraper accesses each URL linked to a message and retrieves the message body.
+  * Header and Footer Removal: To focus on the core message content, headers and footers (which typically contain navigation and additional metadata) are removed.
+  * Plain Text Storage: The message text is saved into the dataframe.
+  
+5.  **HTML to Text Conversion**
+
+  * Both metadata and message content are parsed from HTML to plain text. Special characters may not have fully converted, so minor encoding inconsistencies might be present.
+
+6. **Handling Missing or Problematic Data**
+   
+  * A specific message from WWWTalk could not be automatically scraped and was imported manually. This message is saved in a .txt file named missing_link.txt and is automatically imported by the scraper.
+  * Empty Messages and 404 Errors: Some messages, especially in WWWVRML, have links that return a 404 error. In other cases, accessible URLs lead to empty message content. These cases are documented in the   summary table below.
 
 ![image](https://github.com/user-attachments/assets/63aa633e-459d-48ea-8110-305ec2b435b9)
 
