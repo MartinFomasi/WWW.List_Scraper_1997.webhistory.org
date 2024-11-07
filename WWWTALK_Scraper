@@ -1,7 +1,7 @@
 ---
 title: "Fomasi, M. (2024). WWWTalk_Scraper (Versione 1.0) [R; Windows (64x)]"
 author: "Martin Fomasi"
-date: "2024-11-07"
+date: "2024-09-27"
 output:
   word_document: default
   html_document: default
@@ -155,7 +155,7 @@ for (i in 1:14) {
 }
 ```
 
-```{r Rerrange Directories with incorrect format, cache =TRUE}
+```{r Arrange Directories with incorrect format, cache =TRUE}
 
 #1994q2
 Authors[[7]] <- c(Authors[[7]], Authors[[8]][1]) #Move First author of 1994q2 as last author of 1994q1
@@ -198,45 +198,6 @@ for (i in 1:14) {   #Start main loop
     colnames(Test)[1] <- "Authors" #Rename first column in Authors
     
     current<-Titles[[i]] #Select current Titles
-    
-    Test[2]<- current[x] #Import Titles
-    
-    colnames(Test)[2]<- "Title"#Rename second column in Title 
-    
-    Merging_list[[x]]<-Test #Save iteration 
-    
-    current<-Date[[i]] #Select date
-    
-    Test[3]<-current[x] #Import date
-    
-    colnames(Test)[3]<-"Date" #Rename column
-    
-    Merging_list[[x]]<-Test #Save the result of the sub loop
-  }
-  
-  Storing_list[[i]]<-Merging_list #Save sub loop into the main list and ressta
-  
-}
-
-Df<-bind_rows(Storing_list)
-
-```
-
-```{r Create incomplete Directories dataframe, cache=TRUE }
-
-Storing_list<-list()
-
-for (i in 1:14) {   #Start main loop
-  
-  Merging_list<-list() #Create an empty list to store the results of the the sub loop
-  
-  for ( x in 1:length(Titles[[i]])) { #Start sub loop
-    
-    Test<- data.frame(Titles[[i]][[x]]) #Import authors
-    
-    colnames(Test)[1] <- "Title"#Rename first column in Authors
-    
-    current<-Authors[[i]] #Select current Titles
     
     Test[2]<- current[x] #Import Titles
     
