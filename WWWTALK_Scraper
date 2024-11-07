@@ -155,7 +155,7 @@ for (i in 1:14) {
 }
 ```
 
-```{r Arrange Directories with incorrect format, cache =TRUE}
+```{r Rerrange Directories with incorrect format, cache =TRUE}
 
 #1994q2
 Authors[[7]] <- c(Authors[[7]], Authors[[8]][1]) #Move First author of 1994q2 as last author of 1994q1
