@@ -1,4 +1,4 @@
-# WWW.List_Scraper 1997.webhistory.org (Beta). 
+# WWW.List_Scraper 1997.webhistory.org 
 
 These scrapers are independent projects developed to extract and create a dataframe from the WWW mailing lists hosted by The World Wide Web History Project at http://1997.webhistory.org/www.lists/. These project **is not affiliated with or endorsed** by The World Wide Web History Project or Arcady Press.
 
