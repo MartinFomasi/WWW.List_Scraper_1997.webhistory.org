@@ -393,7 +393,30 @@ Temporary_df <- cbind(Temporary_df, Data) # Merge Data and Metadata.
 
 ```{r Import missing link, and merge with its metadata, cache=TRUE}
 
-Missing_Link<-readLines("Missing_link.txt") #Complete the list by importing the missing link
+Missing_Link <- c("http://1997.webhistory.org/www.lists/www-talk.1994q1/0806.html") 
+
+req <- request(Missing_Link) # Send a request to the URL to retrieve its content
+
+req <- req %>% 
+  req_perform() %>%     # Execute the HTTP request
+  resp_body_string()    # Extract the body of the response as a string
+
+
+req <- sub(".*<!-- body=\"start\" -->(.*)<!-- body=\"end\" -->.*", "\\1", req) # Select the content of the messages
+
+Cleaned <- str_replace_all(req, "<[^>]+>", "") # Remove HTML tags
+
+Cleaned <- gsub("\n", " ", Cleaned) # Remove \n characters
+
+Cleaned <- gsub("\\t", "", Cleaned) # Remove \t characters
+
+Cleaned <- as.character(Cleaned) # Convert to character type if necessary
+
+Cleaned <- gsub('\\\\', "", Cleaned) # Remove \\
+
+Cleaned <- gsub('"', '', Cleaned) # Remove "
+  
+Missing_Link <-Cleaned
 
 Missing_Metadata<- Metadata[4483,] #Select missing link metadata
 
@@ -401,6 +424,25 @@ Missing_Metadata <- cbind(Metadata[4483,], Missing_Link) #Merge missing link's d
 
 Missing_Metadata <- Missing_Metadata %>%
   rename(Scraping = Missing_Link) #Rename column in Scraping
+
+```
+
+```{r Complete the dataframe, cache=TRUE}
+
+
+Scraping_df_top <- Temporary_df[1:4482, ]    # Separate temporary before 4483
+Scraping_df_bottom <- Temporary_df[4483:nrow(Temporary_df), ]  # Separate temporary after 4483 
+
+Scraping_df <- rbind(Scraping_df_top, Missing_Metadata, Scraping_df_bottom) #Merge missing link
+
+
+Scraping_df <- Scraping_df %>%
+  mutate(Scraping = gsub("&gt;", ">", Scraping))%>% #Remove exceeding HTML tag in the Scraping
+  mutate(File_name = gsub("http://1997.webhistory.org/www.lists/", "", Url))%>% #Create a column with an univocal file name based on URL
+  mutate(File_name = gsub("/", ".", File_name))%>% #Remove special characters not allowed by Windows for saving
+  select(File_name, Authors, Title, Date, Time, Time_zone, Scraping, Url, everything())
+
+```
 
 ```
 
