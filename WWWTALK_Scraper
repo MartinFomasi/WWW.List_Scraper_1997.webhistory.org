@@ -3,9 +3,7 @@ title: "Fomasi, M. (2024). WWWTalk_Scraper (Versione 1.0) [R; Windows (64x)]"
 author: "Martin Fomasi"
 date: "2024-09-27"
 output:
-  word_document: default
   html_document: default
-  pdf_document: default
 For_more_legal_info: http://1997.webhistory.org/legal.html
 Legal_info_WWWTalk: "Copyright © 1996-2003 The World Wide Web History Project and
   Arcady Press"
@@ -180,7 +178,6 @@ Date[[9]]<-c(Date[[9]], Date[[10]][1])
 
 Date[[10]] <- Date[[10]][-1]
 
-
 ```
 
 ```{r Create incomplete Directories dataframe, cache=TRUE }
@@ -338,7 +335,6 @@ URL_df<-do.call(rbind, URL_list) #Convert in a dataframe
 
 Directories<-Directories%>% 
   mutate(Url=URL_df$Url)
-
 
 ```
 
