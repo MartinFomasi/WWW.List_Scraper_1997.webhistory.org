@@ -291,6 +291,11 @@ for (i in 1:10558) {  # Select quantity of links
   Cleaned <- gsub("\n", " ", Cleaned) # Remove \n tag
   
   List_Text[[i]] <- Cleaned # Add the message to the list
+        
+  Sys.sleep(1.5)
+  
+  message("End iteration ", i, ": ", Sys.time())
+
 }
 
 List_Loop<-List_Text # Copy the list with the Scraping
