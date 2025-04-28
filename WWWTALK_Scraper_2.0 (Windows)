@@ -5,7 +5,7 @@
 #The main repository of the lists are accessible on Web History Project website: http://1997.webhistory.org/www.lists/ 
 #Special thanks to Kevin Hughes for preserving the archives and posting them back in the 1990s on Web History Project website
 
-#CAUTION: THIS CODE USE PARALLEL PROCESSING FOR THE SCRAPING. DO NOT USE MORE THAN 3 CORE.
+#CAUTION: THIS CODE USES PARALLEL PROCESSING FOR SCRAPING. DO NOT USE MORE THAN 3 CORES. A HIGHER QUANTITY COULD DAMAGE THE SERVER
 
 #Code
 
