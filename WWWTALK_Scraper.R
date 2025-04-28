@@ -1,10 +1,12 @@
 # Fomasi, M. (2024). WWWTALK_Scraper (Versione 1.0) [R; Windows (64x)]
+#All content from the WWWTALK is protected under copyright © 1996–2003 by The World Wide Web History Project and Arcady Press.
+#Legal info: http://1997.webhistory.org/legal.html
+#This project is not affiliated with the The World Wide Web History Project and Arcady Press
+#The main repository of the lists are accessible on Web History Project website: http://1997.webhistory.org/www.lists/ 
+#Special thanks to Kevin Hughes for preserving the archives and posting them back in the 1990s on Web History Project website
 
-# WWWTALKCopyright © 1996-2003 The World Wide Web History Project and Arcady Press
+#Code
 
-# Legal info: http://1997.webhistory.org/legal.html")
-
-# This project is not affiliated with the The World Wide Web History Project and Arcady Press
 #System set up. Download and open libraries
 Sys.setenv(Lang="en")
 
