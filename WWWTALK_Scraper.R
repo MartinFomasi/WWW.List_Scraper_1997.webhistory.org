@@ -292,9 +292,9 @@ for (i in 1:10558) {  # Select quantity of links
   
   List_Text[[i]] <- Cleaned # Add the message to the list
         
-  Sys.sleep(1.5)
+  Sys.sleep(1)
   
-  message("End iteration ", i, ": ", Sys.time())
+  message(" I scraped ", i, " links. Still ", 10558-i, " links left")
 
 }
 
