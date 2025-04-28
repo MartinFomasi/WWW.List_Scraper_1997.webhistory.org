@@ -1,10 +1,14 @@
-# Fomasi, M. (2024). WWWTALK_Scraper (Versione 2.0) [R; Windows (64x)]
+# Fomasi, M. (2024). WWWTALK_Scraper (Versione 1.0) [R; Windows (64x)]
+#All content from the WWWTALK is protected under copyright © 1996–2003 by The World Wide Web History Project and Arcady Press.
+#Legal info: http://1997.webhistory.org/legal.html
+#This project is not affiliated with the The World Wide Web History Project and Arcady Press
+#The main repository of the lists are accessible on Web History Project website: http://1997.webhistory.org/www.lists/ 
+#Special thanks to Kevin Hughes for preserving the archives and posting them back in the 1990s on Web History Project website
 
-# WWWTALKCopyright © 1996-2003 The World Wide Web History Project and Arcady Press
+#CAUTION: THIS CODE USE PARALLEL PROCESSING FOR THE SCRAPING. DO NOT USE MORE THAN 3 CORE.
 
-# Legal info: http://1997.webhistory.org/legal.html")
+#Code
 
-# This project is not affiliated with the The World Wide Web History Project and Arcady Press
 #System set up. Download and open libraries
 Sys.setenv(Lang="en")
 
@@ -287,36 +291,17 @@ Scrap_funct<-function(x) { # Write the  scraping function
   Cleaned <- str_replace_all(Cleaned, "<[^>]+>", "") # Remove HTML tags
   
   Cleaned <- gsub("\n", " ", Cleaned) # Remove \n tag
+
+  Sys.sleep(1)
   
 }
-
-
-Scrap_funct <- function(x) {
-  result <- tryCatch({
-    Test <- read_html(x) # Legge l'HTML
-    Body <- as.character(Test) # Converte l'HTML in caratteri
-    Cleaned <- sub(".*<!-- body=\"start\" -->(.*)<!-- body=\"end\" -->.*", "\\1", Body) # Estrai il contenuto
-    Cleaned <- str_replace_all(Cleaned, "<[^>]+>", "") # Rimuove i tag HTML
-    Cleaned <- gsub("\n", " ", Cleaned) # Rimuove i caratteri di nuova linea
-    return(Cleaned)
-  }, error = function(e) {
-    message("Error URL: ", x) # Visualizza l'errore nella console
-    message("Error message: ", e$message) # Messaggio di errore dettagliato
-    
-  })
-  
-  return(result)
-}
-
 
 Time0<-Sys.time() #Record begin of the scraping
 Time0format<-format(Time0, "%H:%M:%S") #Convert the time
 
 message("Beginning of the scraping: ", Time0format, " Please wait") #Display message
 
-n.cores <- detectCores() #Detect available Cores on your system 
-
-clust <- makeCluster(n.cores) #Create Cluster using detected cores
+clust <- makeCluster(3) #CAUTION: Do not use too many cores without informing the Webhistory.org
 
 clusterExport(clust, "x") 
 clusterEvalQ(clust, x)
